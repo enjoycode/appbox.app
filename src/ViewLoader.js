@@ -12,7 +12,7 @@ export default function (viewModelID) {
         channel.get('/api/Route/Load?id=' + viewModelID).then(res => {
             const result = res.data
             if (!result.Code) {
-                reject('视图模型尚未编译')
+                reject('ViewModel has not compiled.')
             }
 
             // 定义需要的样式控制

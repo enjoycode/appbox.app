@@ -1,3 +1,4 @@
+import Vue from 'vue'
 import Runtime from '@/assets/js/Runtime'
 import ViewLoader from './ViewLoader'
 import cookie from '@/assets/js/cookie'
