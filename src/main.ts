@@ -28,12 +28,21 @@ var router = new Router({
     }
 });
 
-// 延迟加载路由表
+// 延迟加载静态路由表
 (<any>Channel).get('/api/Route').then(res => {
     var routes = []
-    for (var i = 0; i < res.data.length; i++) {
-        var e = res.data[i]
-        routes.push({ path: e.p ? '/' + e.p : '/' + e.v.replace('.', '/'), component: ViewLoader(e.v) })
+    for (let i = 0; i < res.data.length; i++) {
+        const e = res.data[i]
+        let r = { path: e.p ? '/' + e.p : '/' + e.v.replace('.', '/'), component: ViewLoader(e.v) }
+        if (e.s) { //有子级
+            let children = []
+            for (let j = 0; j < e.s.length; j++) {
+                const element = e.s[j]
+                children.push({ path: '/' + element.p, component: ViewLoader(element.v) })
+            }
+            (<any>r).children = children
+        }
+        routes.push(r)
     }
     router.addRoutes(routes)
 })
