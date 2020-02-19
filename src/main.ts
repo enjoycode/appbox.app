@@ -38,7 +38,7 @@ var router = new Router({
             let children = []
             for (let j = 0; j < e.s.length; j++) {
                 const element = e.s[j]
-                children.push({ path: '/' + element.p, component: ViewLoader(element.v) })
+                children.push({ path: element.p, component: ViewLoader(element.v) })
             }
             (<any>r).children = children
         }
