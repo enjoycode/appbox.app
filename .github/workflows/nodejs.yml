@@ -22,3 +22,21 @@ jobs:
         node-version: 12.x
     - run: npm ci
     - run: npm run build --if-present
+    - name: Push to deploy repo
+      run: |
+        git config --global core.autocrlf input
+        git clone https://enjoycode:${{ secrets.CI_TOKEN }}@github.com/enjoycode/appbox.deploy.win bin/deploy
+        rm -rf bin/deploy/wwwroot/app
+        cp -R dist bin/deploy/wwwroot/app
+        ls -al bin/deploy/wwwroot/app
+        echo "====git add===="
+        cd bin/deploy
+        git add -A
+        git status
+        echo "====git commit===="
+        git config --local user.email "enjoycode@icloud.com"
+        git config --local user.name "enjoycode"
+        git commit -m "CI by appbox.app"
+        echo "====git push==="
+        #git push origin master
+        echo "DONE"
