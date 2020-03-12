@@ -28,7 +28,6 @@ jobs:
         git clone https://enjoycode:${{ secrets.CI_TOKEN }}@github.com/enjoycode/appbox.deploy.win bin/deploy
         rm -rf bin/deploy/wwwroot/app
         cp -R dist bin/deploy/wwwroot/app
-        ls -al bin/deploy/wwwroot/app
         echo "====git add===="
         cd bin/deploy
         git add -A
@@ -38,5 +37,5 @@ jobs:
         git config --local user.name "enjoycode"
         git commit -m "CI by appbox.app"
         echo "====git push==="
-        #git push origin master
+        git push origin master
         echo "DONE"
