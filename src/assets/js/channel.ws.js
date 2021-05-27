@@ -1,13 +1,19 @@
-import { Message } from 'easeui'
-import store from '../../components/DesignStore'
+import { Message } from 'element-ui'
+// import store from '@/design/DesignStore'
+import Vue from 'vue'
 import axios from 'axios'
 import rjson from './refJSON'
+import jsonp from './jsonp'
+// import DebugService from '@/components/Designers/Service/DebugService'
+import EventManager from './EventManager'
+import util from './util'
 
 var socket
 
 var msgIdIndex = 0 // 当前消息流水计数器
 var waitHandles = [] // 已成功发送待回复的请求列表
 var pendingRequires = [] // 链路断开后挂起的请求列表
+const vue = new Vue()
 
 /**
  * 连接至服务端
@@ -39,13 +45,31 @@ function onopen(event) {
 }
 
 function onclose(event) {
-	Message.error('连接关闭，请重新登录')
-	store.router.replace('/')
+	if (event.code !== 1000) {
+		// Message.error('连接关闭，请重新登录')
+		let currentPath = util.vue.$route.path
+		let login = localStorage.getItem('login')
+		if (login) {
+			if (login != currentPath)
+				util.vue.$router.replace(login)
+		} else {
+			if (currentPath != '/')
+				util.vue.$router.replace('/')
+		}
+	}
 }
 
 function onerror(event) {
 	Message.error('连接异常，请重新登录')
-	store.router.replace('/')
+	let currentPath = util.vue.$route.path
+	let login = localStorage.getItem('login')
+	if (login) {
+		if (login != currentPath)
+			util.vue.$router.replace(login)
+	} else {
+		if (currentPath != '/')
+			util.vue.$router.replace('/')
+	}
 }
 
 /**
@@ -57,17 +81,25 @@ function onmessage(event) {
 }
 
 function onResult(res) {
-	for (var i = 0; i < waitHandles.length; i++) {
-		if (waitHandles[i].Id === res.I) {
-			var cb = waitHandles[i].Cb
-			waitHandles.splice(i, 1)
-			console.log('移除请求等待者, 还余: ' + waitHandles.length)
-			if (res.E) {
-				cb(res.E, null)
-			} else {
-				cb(null, res.D)
+	if (res.ES) { // Event
+		if (res.ES === 2) { // 调试事件
+			// DebugService.handleDebugEvent(res.BD) //TODO: 交由DesignStore处理
+		} else if (res.ES === 3) {
+			EventManager.handleEvent(res.BD)
+		}
+	} else { // InvokeResponse
+		for (var i = 0; i < waitHandles.length; i++) {
+			if (waitHandles[i].Id === res.I) {
+				var cb = waitHandles[i].Cb
+				waitHandles.splice(i, 1)
+				// console.log('移除请求等待者, 还余: ' + waitHandles.length)
+				if (res.E) {
+					cb(res.E, null)
+				} else {
+					cb(null, res.D)
+				}
+				return
 			}
-			return
 		}
 	}
 }
@@ -86,7 +118,7 @@ function sendRequire(service, args, callback) {
 	// 先加入等待者列表
 	msgIdIndex++
 	waitHandles.push({ Id: msgIdIndex, Cb: callback })
-	console.log('加入请求等待者, 还余: ' + waitHandles.length)
+	// console.log('加入请求等待者, 还余: ' + waitHandles.length)
 	// 通过socket发送请求
 	var require = { I: msgIdIndex, S: service, A: args }
 	try {
@@ -119,6 +151,12 @@ export default {
 	 * external 外部用户模型标识
 	 */
 	login(user, pwd, external) {
+		// 临时方案判断socket是否已打开，已打开则关闭，主要用于防止重新登录时服务端WebSocket还绑定旧会话
+		if (socket && socket.readyState === WebSocket.OPEN) {
+			// socket.close(4999, 'relogin') 无效
+			socket.close()
+		}
+
 		var promise = new Promise((resolve, reject) => {
 			axios.post('/api/Login/post', { User: user, Password: pwd, ExternalModelID: external }, {}).then(function (response) {
 				if (response.data.succeed) {
@@ -204,6 +242,8 @@ export default {
 	get(url, config) {
 		return axios.get(url, config)
 	},
+
+	jsonp: jsonp,
 
 	/**
 	 * 注册事件侦听器

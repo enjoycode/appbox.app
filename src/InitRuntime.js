@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Runtime from '@/assets/js/Runtime'
 import ViewLoader from './ViewLoader'
 import cookie from '@/assets/js/cookie'
-import Channel from '@/assets/js/channel.ajax'
+import Channel from '@/assets/js/channel.ws'
 // import { Component, Inject, Model, Prop, Watch } from 'vue-property-decorator'
 import { Component, Prop, Watch } from 'vue-property-decorator' // 用于运行时
 

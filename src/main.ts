@@ -6,13 +6,14 @@ import initRuntime from './InitRuntime'
 import Channel from '@/assets/js/channel.ajax'
 import registerComponents from './ComponentRegister'
 import App from './App.vue'
-// import VueMoment from 'vue-moment'
+import VueMoment from 'vue-moment'
 import Meta from 'vue-meta'
+import util from './assets/js/util'
 
 Vue.config.productionTip = false
 Vue.use(Router)
 Vue.use(Meta, { keyName: 'meta' })
-// Vue.use(VueMoment)
+Vue.use(VueMoment)
 
 polyfill()
 initRuntime() // 初始化运行时
@@ -48,4 +49,4 @@ var router = new Router({
 })
 
 /* eslint-disable no-new */
-new Vue({ el: '#app', router, render: h => h(App) })
+util.vue = new Vue({ el: '#app', router, render: h => h(App) })
